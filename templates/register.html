@@ -6,16 +6,94 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Register Page</h1>
-
     <form method="POST" action="">
+        <h1>Register Page</h1>
         {{ form.hidden_tag() }}
-        {{ form.username }}
-        {{ form.password }}
-        {{ form.submit }}
+        <div class="form-group">
+            <label for="username">Username</label>
+            {{ form.username(id='username') }}
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            {{ form.email(id='email') }}
+        </div>
+        <div class="form-group">
+            <label for="role">Role</label>
+            {{ form.role(id='role') }}
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            {{ form.password(id='password') }}
+        </div>
+        <div class="form-group">
+            {{ form.submit() }}
+        </div>
     </form>
 
     <a href="{{ url_for('login') }}">Already have an account? Log In</a>
