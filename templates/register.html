@@ -58,6 +58,11 @@
             background-color: #0056b3;
         }
 
+        .error {
+            color: red;
+            font-size: 0.875em;
+        }
+
         a {
             display: block;
             text-align: center;
@@ -75,22 +80,39 @@
     <form method="POST" action="">
         <h1>Register Page</h1>
         {{ form.hidden_tag() }}
+
         <div class="form-group">
             <label for="username">Username</label>
             {{ form.username(id='username') }}
+            {% if form.username.errors %}
+            <div class="error">{{ form.username.errors[0] }}</div>
+            {% endif %}
         </div>
+
         <div class="form-group">
             <label for="email">Email</label>
             {{ form.email(id='email') }}
+            {% if form.email.errors %}
+            <div class="error">{{ form.email.errors[0] }}</div>
+            {% endif %}
         </div>
+
         <div class="form-group">
             <label for="role">Role</label>
             {{ form.role(id='role') }}
+            {% if form.role.errors %}
+            <div class="error">{{ form.role.errors[0] }}</div>
+            {% endif %}
         </div>
+
         <div class="form-group">
             <label for="password">Password</label>
             {{ form.password(id='password') }}
+            {% if form.password.errors %}
+            <div class="error">{{ form.password.errors[0] }}</div>
+            {% endif %}
         </div>
+
         <div class="form-group">
             {{ form.submit() }}
         </div>

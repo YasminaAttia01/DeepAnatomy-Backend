@@ -69,6 +69,10 @@ def login():
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 return redirect(url_for('dashboard'))
+            else:
+                form.password.errors.append("Incorrect password. Please try again.")
+        else:
+            form.username.errors.append("Username does not exist. Please register.")
     return render_template('login.html', form=form)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
@@ -100,11 +104,16 @@ def api_login():
     data = request.json
     username = data.get('username')
     password = data.get('password')
+
     user = User.query.filter_by(username=username).first()
-    if user and bcrypt.check_password_hash(user.password, password):
-        login_user(user)
-        return jsonify({"message": "Login successful", "user_id": user.id}), 200
-    return jsonify({"message": "Invalid credentials"}), 401
+    if not user:
+        return jsonify({"message": "Username does not exist. Please register first."}), 404
+
+    if not bcrypt.check_password_hash(user.password, password):
+        return jsonify({"message": "Invalid password."}), 401
+
+    login_user(user)
+    return jsonify({"message": "Login successful", "user_id": user.id}), 200
 
 @app.route('/api/register', methods=['POST'])
 def api_register():
