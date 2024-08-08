@@ -2,7 +2,7 @@ from flask import Flask, render_template, url_for, redirect, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 
@@ -27,6 +27,51 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     role = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(80), nullable=False)
+
+    # Relation one-to-many avec la table UserInterest
+    interests = db.relationship('UserInterest', backref='user', lazy=True)
+
+class UserInterest(db.Model):
+    idInterest = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    topic = db.Column(db.String(100), nullable=False)
+    author = db.Column(db.String(100), nullable=False)
+    lab = db.Column(db.String(100), nullable=False)
+
+class InterestForm(FlaskForm):
+    topic = SelectField('Select your interest', 
+                        choices=[
+                            ('Genetic Engineering', 'Genetic Engineering'),
+                            ('Urinary System: Kidneys and Bladder', 'Urinary System: Kidneys and Bladder'),
+                            ('Immune System: Lymphatic Structures and Functions', 'Immune System: Lymphatic Structures and Functions'),
+                            ('Microbiome and Human Health', 'Microbiome and Human Health'),
+                            ('Abdominal Anatomy', 'Abdominal Anatomy'),
+                            ('Skeletal System: Bone Structure', 'Skeletal System: Bone Structure')
+                        ],
+                        validators=[InputRequired()])
+    
+    author = SelectField('Choose your favorite author', 
+                         choices=[
+                            ('Richard Dawkins', 'Richard Dawkins'),
+                            ('Lynn Margulis', 'Lynn Margulis'),
+                            ('Nettie Stevens', 'Nettie Stevens'),
+                            ('Thomas Hunt Morgan', 'Thomas Hunt Morgan'),
+                            ('Alexander Fleming', 'Alexander Fleming'),
+                            ('Jane Goodall', 'Jane Goodall')
+                         ],
+                         validators=[InputRequired()])
+    
+    lab = SelectField('Choose your favorite research laboratory', 
+                      choices=[
+                          ('Science Lab', 'Science Lab'),
+                          ('Medical Lab', 'Medical Lab'),
+                          ('Lab MAGNUS', 'Lab MAGNUS'),
+                          ('SCIENCE LABORATOIRE', 'SCIENCE LABORATOIRE'),
+                          ('CNRS', 'CNRS')
+                      ],
+                      validators=[InputRequired()])
+    
+    submit = SubmitField('Submit')
 
 class RegisterForm(FlaskForm):
     username = StringField(validators=[
@@ -65,14 +110,11 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
-                login_user(user)
-                return redirect(url_for('dashboard'))
-            else:
-                form.password.errors.append("Incorrect password. Please try again.")
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user)
+            return redirect(url_for('interests'))
         else:
-            form.username.errors.append("Username does not exist. Please register.")
+            form.password.errors.append("Incorrect username or password. Please try again.")
     return render_template('login.html', form=form)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
@@ -97,42 +139,21 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
-# API Endpoints
-
-@app.route('/api/login', methods=['POST'])
-def api_login():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        return jsonify({"message": "Username does not exist. Please register first."}), 404
-
-    if not bcrypt.check_password_hash(user.password, password):
-        return jsonify({"message": "Invalid password."}), 401
-
-    login_user(user)
-    return jsonify({"message": "Login successful", "user_id": user.id}), 200
-
-@app.route('/api/register', methods=['POST'])
-def api_register():
-    data = request.json
-    username = data.get('username')
-    email = data.get('email')
-    role = data.get('role')
-    password = data.get('password')
-
-    if User.query.filter_by(username=username).first():
-        return jsonify({"message": "Username already exists"}), 400
-    if User.query.filter_by(email=email).first():
-        return jsonify({"message": "Email already exists"}), 400
-
-    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    new_user = User(username=username, email=email, role=role, password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({"message": "Registration successful"}), 201
+@app.route('/interests', methods=['GET', 'POST'])
+@login_required
+def interests():
+    form = InterestForm()
+    if form.validate_on_submit():
+        new_interest = UserInterest(
+            user_id=current_user.id,
+            topic=form.topic.data,
+            author=form.author.data,
+            lab=form.lab.data
+        )
+        db.session.add(new_interest)
+        db.session.commit()
+        return redirect(url_for('dashboard'))
+    return render_template('interests.html', form=form)
 
 @app.route('/api/logout', methods=['POST'])
 def api_logout():

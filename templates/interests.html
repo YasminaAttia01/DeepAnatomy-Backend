@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Interests</title>
+</head>
+
+<body>
+    <h1>Select Your Interests</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.topic.label }}<br>
+            {{ form.topic(size=30) }}
+        </div>
+        <div>
+            {{ form.author.label }}<br>
+            {{ form.author(size=30) }}
+        </div>
+        <div>
+            {{ form.lab.label }}<br>
+            {{ form.lab(size=30) }}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+</body>
+
+</html>
